@@ -145,6 +145,30 @@
   button:disabled{opacity:.55;cursor:not-allowed}
   .actions .side{font-size:13.5px;color:var(--muted)}
 
+  /* Password fields.
+     Both labels are deliberately single-line so the two inputs share a
+     baseline in the two-column row — the guidance that used to sit inside
+     the left label (and pushed it to two lines) now lives in .req below the
+     input, where it can react as the person types. Don't reintroduce a
+     block-level hint inside one label only; that is what knocked the boxes
+     out of alignment. */
+  .pw-wrap{position:relative;display:flex;align-items:center}
+  .pw-wrap input{padding-right:64px}
+  button.pw-toggle{
+    position:absolute;right:5px;
+    background:none;border:none;border-radius:2px;
+    color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;
+    letter-spacing:.02em;padding:6px 9px;cursor:pointer;
+  }
+  button.pw-toggle:hover{background:var(--accent-soft);color:var(--accent)}
+  button.pw-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+  .req{
+    display:block;font-size:12.5px;color:var(--faint);
+    margin-top:6px;min-height:1.45em;
+  }
+  .req.ok{color:var(--ok);font-weight:600}
+
   .banner{
     border:1px solid var(--line);border-left-width:4px;padding:15px 18px;margin:0 0 22px;font-size:14.5px;
   }
@@ -202,8 +226,14 @@
 
     <fieldset>
       <legend>Your business</legend>
-      <p class="fs-note">Enter the email address where your shop receives messages.</p>
+      <p class="fs-note">Your shop's name as customers know it, and the address where it receives messages.</p>
       <div class="grid">
+        <div class="f">
+          <label for="businessName">Business name</label>
+          <input id="businessName" required autocomplete="organization"
+                 placeholder="Riverside Computer Repair">
+          <span class="err" id="e-businessName"></span>
+        </div>
         <div class="f">
           <label for="email">Business email</label>
           <input id="email" type="email" required autocomplete="email" placeholder="shop@example.com">
@@ -238,13 +268,23 @@
       </div>
       <div class="grid two" style="margin-top:18px">
         <div class="f">
-          <label for="password">Password <span class="hint">At least 10 characters.</span></label>
-          <input id="password" type="password" required autocomplete="new-password">
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input id="password" type="password" required autocomplete="new-password"
+                   aria-describedby="r-password">
+            <button type="button" class="pw-toggle" data-for="password">Show</button>
+          </div>
+          <span class="req" id="r-password" aria-live="polite">At least 10 characters</span>
           <span class="err" id="e-password"></span>
         </div>
         <div class="f">
-          <label for="password2">Repeat password <span class="hint"></span></label>
-          <input id="password2" type="password" required autocomplete="new-password">
+          <label for="password2">Repeat password</label>
+          <div class="pw-wrap">
+            <input id="password2" type="password" required autocomplete="new-password"
+                   aria-describedby="r-password2">
+            <button type="button" class="pw-toggle" data-for="password2">Show</button>
+          </div>
+          <span class="req" id="r-password2" aria-live="polite">Type it a second time</span>
           <span class="err" id="e-password2"></span>
         </div>
       </div>
@@ -351,6 +391,79 @@
     slugEcho.textContent = cleaned || "—";
   });
 
+  // ---- invite code formatting -------------------------------------------
+  // Groups into XXXX-XXXX-XXXX as they type, so nobody has to wonder whether
+  // the dashes are theirs to add. Only reformats when the caret sits at the
+  // end — mid-string edits are left alone rather than yanking the cursor,
+  // and blur normalises whatever they end up with.
+  var inviteInput = $("invite");
+
+  function formatInvite() {
+    var packed = inviteInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+    return packed.replace(/(.{4})(?=.)/g, "$1-");
+  }
+
+  inviteInput.addEventListener("input", function () {
+    if (inviteInput.selectionStart !== inviteInput.value.length) return;
+    var formatted = formatInvite();
+    if (formatted !== inviteInput.value) inviteInput.value = formatted;
+  });
+  inviteInput.addEventListener("blur", function () {
+    inviteInput.value = formatInvite();
+  });
+
+  // ---- password affordances ---------------------------------------------
+  // Named *Field to stay clear of validate(), which declares its own local
+  // `pw` / `pw2` holding the string values rather than the elements.
+  var pwField = $("password"), pw2Field = $("password2");
+
+  function setReq(id, message, satisfied) {
+    var slot = $(id);
+    slot.textContent = message;
+    slot.className = satisfied ? "req ok" : "req";
+  }
+
+  function reviewPassword() {
+    var n = pwField.value.length;
+    if (!n) setReq("r-password", "At least 10 characters", false);
+    else if (n >= MIN_PASSWORD) setReq("r-password", "Long enough", true);
+    else {
+      var short = MIN_PASSWORD - n;
+      setReq("r-password", short + " more character" + (short === 1 ? "" : "s"), false);
+    }
+    reviewMatch();
+  }
+
+  function reviewMatch() {
+    if (!pw2Field.value) { setReq("r-password2", "Type it a second time", false); return; }
+    if (pw2Field.value === pwField.value) setReq("r-password2", "Both match", true);
+    else setReq("r-password2", "Not matching yet", false);
+  }
+
+  pwField.addEventListener("input", reviewPassword);
+  pw2Field.addEventListener("input", reviewMatch);
+
+  // Show/hide. The label carries the action, and aria-pressed carries the
+  // state, so this reads correctly to a screen reader either way.
+  Array.prototype.forEach.call(document.querySelectorAll(".pw-toggle"), function (toggle) {
+    toggle.setAttribute("aria-pressed", "false");
+    toggle.addEventListener("click", function () {
+      var field = $(toggle.getAttribute("data-for"));
+      var nowText = field.type === "password";
+      field.type = nowText ? "text" : "password";
+      toggle.textContent = nowText ? "Hide" : "Show";
+      toggle.setAttribute("aria-pressed", nowText ? "true" : "false");
+      field.focus();
+    });
+  });
+
+  // ---- clear a field's error once it is being corrected -------------------
+  ["invite", "businessName", "email", "slug", "username", "password", "password2"].forEach(function (id) {
+    $(id).addEventListener("input", function () {
+      if ($(id).getAttribute("aria-invalid")) setError(id, "");
+    });
+  });
+
   // ---- validation --------------------------------------------------------
   function validate() {
     clearErrors();
@@ -362,6 +475,7 @@
     }
 
     require("invite", "Enter the invite code you were sent.");
+    require("businessName", "Enter your shop's name.");
 
     if (require("email", "Enter a business email address.")) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) {
@@ -408,7 +522,15 @@
 
     var body = {};
     Object.keys(FIELD_ALIASES).forEach(function (id) {
-      var raw = $(id).value;
+      // Skip any alias group with no matching input. FIELD_ALIASES is the
+      // wire contract and the form is the UI; if the two drift, the missing
+      // key is simply not sent. Reading .value off a null here threw before
+      // this loop finished — and because this runs ahead of the disable/
+      // status lines below, the button gave no spinner, no error, no
+      // anything: every click was silently dead. Do not remove this guard.
+      var field = $(id);
+      if (!field) return;
+      var raw = field.value;
       // Never trim a password — leading and trailing spaces are part of it.
       var value = (RAW_FIELDS.indexOf(id) !== -1) ? raw : raw.trim();
       FIELD_ALIASES[id].forEach(function (key) { body[key] = value; });
