@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tell Us About Your Device</title>
+
+<style>
+  :root{
+    --paper:#f2f4f1;
+    --card:#ffffff;
+    --field:#ffffff;
+    --ink:#161b17;
+    --muted:#5a655e;
+    --faint:#828d86;
+    --line:#d5ddd7;
+    --line-firm:#aab5ae;
+    --accent:#0e5c4c;
+    --accent-hover:#0b4a3d;
+    --accent-soft:#e0ece7;
+    --danger:#9a3320;
+    --danger-soft:#f7e5e0;
+    --ok:#0e5c4c;
+    --ok-soft:#e0ece7;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0f1210;
+      --card:#161b17;
+      --field:#1f2620;
+      --ink:#f2f4f1;
+      --muted:#aab5ae;
+      --faint:#73807a;
+      --line:#2d3430;
+      --line-firm:#464d49;
+      --accent:#4bcda9;
+      --accent-hover:#5fe0be;
+      --accent-soft:#0d3d33;
+      --danger:#e89178;
+      --danger-soft:#4a2a1f;
+      --ok:#4bcda9;
+      --ok-soft:#0d3d33;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    padding:32px 20px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    color:var(--ink);
+    background:var(--paper);
+  }
+  .container{
+    max-width:540px;
+    margin:0 auto;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:32px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .tagline{
+    margin:0 0 32px;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .alert{
+    padding:16px;
+    margin:0 0 32px;
+    border-left:4px solid var(--accent);
+    background:var(--accent-soft);
+    border-radius:4px;
+  }
+  .alert strong{
+    color:var(--ink);
+    font-weight:600;
+  }
+  .alert p{
+    margin:8px 0 0;
+    color:var(--ink);
+    font-size:14px;
+  }
+  .alert a{
+    color:var(--accent);
+    text-decoration:none;
+  }
+  .alert a:hover{
+    text-decoration:underline;
+  }
+  form{
+    background:var(--card);
+    padding:32px;
+    border-radius:8px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  }
+  .form-group{
+    margin:0 0 24px;
+  }
+  .form-group:last-child{
+    margin-bottom:0;
+  }
+  label{
+    display:block;
+    margin:0 0 8px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .required::after{
+    content:" *";
+    color:var(--danger);
+  }
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  select,
+  textarea{
+    width:100%;
+    padding:12px 16px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--field);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:16px;
+    line-height:1.5;
+    transition:border-color 0.2s,box-shadow 0.2s;
+  }
+  input[type="text"]:focus,
+  input[type="tel"]:focus,
+  input[type="email"]:focus,
+  select:focus,
+  textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  input[aria-invalid="true"],
+  select[aria-invalid="true"],
+  textarea[aria-invalid="true"]{
+    border-color:var(--danger);
+  }
+  input[aria-invalid="true"]:focus,
+  select[aria-invalid="true"]:focus,
+  textarea[aria-invalid="true"]:focus{
+    box-shadow:0 0 0 3px var(--danger-soft);
+  }
+  textarea{
+    resize:vertical;
+    min-height:120px;
+  }
+  .error-message{
+    display:none;
+    margin:8px 0 0;
+    font-size:14px;
+    color:var(--danger);
+  }
+  input[aria-invalid="true"] ~ .error-message,
+  select[aria-invalid="true"] ~ .error-message,
+  textarea[aria-invalid="true"] ~ .error-message{
+    display:block;
+  }
+  .hint{
+    display:block;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:normal;
+    text-transform:none;
+    letter-spacing:normal;
+    margin:4px 0 0;
+  }
+  button{
+    width:100%;
+    padding:16px;
+    margin:32px 0 0;
+    border:none;
+    border-radius:4px;
+    background:var(--accent);
+    color:#ffffff;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background-color 0.2s;
+  }
+  button:hover:not(:disabled){
+    background:var(--accent-hover);
+  }
+  button:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+  }
+  .success-panel{
+    display:none;
+    padding:24px;
+    background:var(--ok-soft);
+    border-left:4px solid var(--ok);
+    border-radius:4px;
+  }
+  .success-panel.show{
+    display:block;
+  }
+  .success-panel h2{
+    margin:0 0 8px;
+    font-size:18px;
+    font-weight:600;
+    color:var(--ok);
+  }
+  .success-panel p{
+    margin:0;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .form-wrapper.submitted{
+    display:none;
+  }
+  .form-wrapper.submitted ~ .success-panel{
+    display:block;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Tell Us About Your Device</h1>
+  <p class="tagline">Lumberton–Whiteville Computer Repair · a couple minutes now saves time on the call</p>
+
+  <div class="alert">
+    <strong>This isn't a price quote.</strong> We'll always give you an exact number by phone before any work happens — nothing here is a commitment on either side. Simple repairs usually run about <span style="color:var(--accent);">$75</span>, bigger jobs around <span style="color:var(--accent);">$125</span>, but the real number depends on what we find.
+  </div>
+
+  <div class="form-wrapper">
+    <form name="device-intake" method="POST" netlify>
+      <div class="form-group">
+        <label for="name" class="required">Your Name</label>
+        <input type="text" id="name" name="name" required>
+        <div class="error-message" id="e-name">Please enter your name</div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="required">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="We'll call you back on this" required>
+        <div class="error-message" id="e-phone">Please enter a valid phone number</div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email (optional)</label>
+        <input type="email" id="email" name="email">
+        <div class="error-message" id="e-email">Please enter a valid email address</div>
+      </div>
+
+      <div class="form-group">
+        <label for="deviceType" class="required">Device Type</label>
+        <select id="deviceType" name="deviceType" required>
+          <option value="">-- Please select --</option>
+          <option value="laptop">Laptop</option>
+          <option value="desktop">Desktop</option>
+          <option value="tablet">Tablet</option>
+          <option value="smartphone">Smartphone</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="error-message" id="e-deviceType">Please select a device type</div>
+      </div>
+
+      <div class="form-group">
+        <label for="brandModel">Brand / Model (if known)</label>
+        <input type="text" id="brandModel" name="brandModel" placeholder="e.g. Dell Vostro 5301">
+        <div class="error-message" id="e-brandModel">Please enter device brand/model</div>
+      </div>
+
+      <div class="form-group">
+        <label for="issue" class="required">What's It Doing?</label>
+        <textarea id="issue" name="issue" placeholder="Describe it in your own words" required></textarea>
+        <div class="error-message" id="e-issue">Please describe the issue</div>
+      </div>
+
+      <div class="form-group">
+        <label for="duration">How Long Has It Been Doing This?</label>
+        <input type="text" id="duration" name="duration" placeholder="e.g. since last week, or just today">
+        <div class="error-message" id="e-duration">Please enter duration</div>
+      </div>
+
+      <div class="form-group">
+        <label for="previousWork">Has Anyone Else Worked On It Recently?</label>
+        <input type="text" id="previousWork" name="previousWork" placeholder="e.g. no, or yes — a friend looked at it">
+        <div class="error-message" id="e-previousWork">Please enter if previous work was done</div>
+      </div>
+
+      <button type="submit" id="submit-btn">Send to the shop</button>
+    </form>
+  </div>
+
+  <div class="success-panel">
+    <h2>We got it</h2>
+    <p>Thanks for the details. We'll call you shortly at the number you provided to give you an exact estimate and next steps.</p>
+  </div>
+</div>
+
+<script>
+  const form = document.querySelector('form[name="device-intake"]');
+  const formWrapper = document.querySelector('.form-wrapper');
+  const submitBtn = document.getElementById('submit-btn');
+
+  // Validation rules
+  const validators = {
+    name: (val) => val.trim().length > 0,
+    phone: (val) => /^[\d\s\-\(\)\+]+$/.test(val) && val.replace(/\D/g, '').length >= 10,
+    email: (val) => val.trim() === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    deviceType: (val) => val.trim().length > 0,
+    brandModel: () => true,
+    issue: (val) => val.trim().length > 0,
+    duration: () => true,
+    previousWork: () => true,
+  };
+
+  function validateField(fieldName) {
+    const field = form.elements[fieldName];
+    const isValid = validators[fieldName](field.value);
+    field.setAttribute('aria-invalid', !isValid);
+    return isValid;
+  }
+
+  function validateForm() {
+    let isValid = true;
+    Object.keys(validators).forEach((fieldName) => {
+      if (!validateField(fieldName)) {
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
+
+  // Validate on blur
+  form.querySelectorAll('input, select, textarea').forEach((field) => {
+    field.addEventListener('blur', () => validateField(field.name));
+    field.addEventListener('change', () => validateField(field.name));
+  });
+
+  // Handle form submission
+  form.addEventListener('submit', (e) => {
+    if (!validateForm()) {
+      e.preventDefault();
+      return;
+    }
+  });
+
+  // Show success message after Netlify form submission
+  window.addEventListener('load', () => {
+    const url = new URL(window.location);
+    if (url.searchParams.has('success') || window.location.hash.includes('form-success')) {
+      formWrapper.classList.add('submitted');
+    }
+  });
+</script>
+</body>
+</html>
