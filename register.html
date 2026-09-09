@@ -108,9 +108,14 @@
   form{background:var(--card);border:1px solid var(--line);padding:0}
   fieldset{border:none;margin:0;padding:26px 26px 28px;border-bottom:1px solid var(--line)}
   fieldset:last-of-type{border-bottom:none}
+  /* Section headings. These were --faint at 11px, which measured 3.44:1 on
+     the card in light mode and 3.94:1 in dark — both under the 4.5:1 WCAG AA
+     floor — and left each heading fainter than the .fs-note sentence beneath
+     it. Accent takes them to 7.91:1 / 7.55:1 and restores the order:
+     heading, then field label, then help text. */
   legend{
-    font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--faint);padding:0;margin:0 0 4px;
+    font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--accent);padding:0;margin:0 0 7px;
   }
   .fs-note{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:48ch}
 
