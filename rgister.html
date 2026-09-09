@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - LWPC</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ecead5;
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: #141414;
+      padding: 22px 16px 60px;
+    }
+
+    .wrap {
+      max-width: 330px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 2px;
+      color: #1f5f4f;
+      text-align: center;
+    }
+
+    .sub {
+      font-size: 13px;
+      color: #666;
+      margin: 0 0 16px;
+      padding-bottom: 12px;
+      border-bottom: 2.5px solid #1f5f4f;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #141414;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    input {
+      padding: 10px 12px;
+      border: 1px solid #d5d1c8;
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      color: #141414;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #1f5f4f;
+      box-shadow: 0 2px 0 rgba(31, 95, 79, 0.2);
+    }
+
+    input::placeholder {
+      color: #999;
+    }
+
+    .password-field {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .password-field input {
+      width: 100%;
+    }
+
+    .btn {
+      background: #1f5f4f;
+      color: #fff;
+      border: none;
+      border-radius: 0 0 8px 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      width: 100%;
+      margin-top: -1px;
+    }
+
+    .btn:hover {
+      background: #164339;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+
+    .login-link a {
+      color: #1f5f4f;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      color: #d32f2f;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .success {
+      background: #e8f5e9;
+      border: 1px solid #4caf50;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      color: #2e7d32;
+      font-size: 13px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Register</h1>
+    <p class="sub">Create your account</p>
+
+    <div class="success" id="successMsg"></div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="you@example.com"
+          required
+        >
+        <div class="error" id="emailError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Choose a username"
+          required
+        >
+        <div class="error" id="usernameError"></div>
+      </div>
+
+      <div class="form-group password-field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="At least 8 characters"
+          required
+        >
+        <div class="error" id="passwordError"></div>
+      </div>
+
+      <div class="form-group password-field">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          placeholder="Re-enter
