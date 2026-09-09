@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Set up your shop</title>
+
+<!-- ===================================================================
+     register.html  —  LWPC job system, tenant sign-up
+     Draft, 8 Sep 2026.
+
+     DEPLOY: must be served from the SAME Netlify origin as
+     checklist.html. The API only accepts requests from that one origin,
+     so this page will fail CORS from anywhere else (including a file://
+     copy opened locally).
+
+     BODY KEY NAMES
+     The route source could not be reached when this was written, so the
+     request body keys were not guessed at — each value is sent under
+     every plausible key at once (see FIELD_ALIASES in the script). A
+     handler that destructures req.body takes what it wants and ignores
+     the rest, so this should work as-is.
+
+     Tidy-up, once you have seen it work: check the network tab for which
+     key the route actually read, then cut each alias list down to that
+     one name. If the route instead rejects unknown keys, trim the lists
+     first, using what POST /register destructures in
+     src/routes/authRoutes.js.
+     =================================================================== -->
+
+<style>
+  :root{
+    --paper:#f2f4f1;
+    --card:#ffffff;
+    --field:#ffffff;
+    --ink:#161b17;
+    --muted:#5a655e;
+    --faint:#828d86;
+    --line:#d5ddd7;
+    --line-firm:#aab5ae;
+    --accent:#0e5c4c;
+    --accent-hover:#0b4a3d;
+    --accent-soft:#e0ece7;
+    --danger:#9a3320;
+    --danger-soft:#f7e5e0;
+    --ok:#0e5c4c;
+    --ok-soft:#e0ece7;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0d1210;
+      --card:#151b17;
+      --field:#1b221d;
+      --ink:#dee6e0;
+      --muted:#95a39b;
+      --faint:#6d7b74;
+      --line:#252f29;
+      --line-firm:#3d4a43;
+      --accent:#5cbba0;
+      --accent-hover:#74c9b1;
+      --accent-soft:#102019;
+      --danger:#dd8570;
+      --danger-soft:#241310;
+      --ok:#5cbba0;
+      --ok-soft:#102019;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0d1210;
+    --card:#151b17;
+    --field:#1b221d;
+    --ink:#dee6e0;
+    --muted:#95a39b;
+    --faint:#6d7b74;
+    --line:#252f29;
+    --line-firm:#3d4a43;
+    --accent:#5cbba0;
+    --accent-hover:#74c9b1;
+    --accent-soft:#102019;
+    --danger:#dd8570;
+    --danger-soft:#241310;
+    --ok:#5cbba0;
+    --ok-soft:#102019;
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:0 18px 80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:620px;margin:0 auto}
+
+  header{padding:52px 0 30px}
+  .kicker{
+    font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px;
+  }
+  h1{font-size:clamp(28px,6vw,38px);line-height:1.1;letter-spacing:-.025em;margin:0 0 12px;font-weight:700}
+  .lede{margin:0;color:var(--muted);font-size:16.5px;max-width:52ch}
+
+  form{background:var(--card);border:1px solid var(--line);padding:0}
+  fieldset{border:none;margin:0;padding:26px 26px 28px;border-bottom:1px solid var(--line)}
+  fieldset:last-of-type{border-bottom:none}
+  legend{
+    font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);padding:0;margin:0 0 4px;
+  }
+  .fs-note{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:48ch}
+
+  .grid{display:grid;gap:18px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  @media (max-width:560px){.grid.two{grid-template-columns:1fr}}
+
+  .f label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .f .hint{display:block;font-weight:400;color:var(--faint);font-size:12.5px;margin-top:3px}
+  input{
+    width:100%;font:inherit;font-size:15.5px;color:var(--ink);background:var(--field);
+    border:1px solid var(--line-firm);border-radius:3px;padding:10px 12px;
+  }
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  input[aria-invalid="true"]{border-color:var(--danger)}
+  input::placeholder{color:var(--faint)}
+  .err{display:block;color:var(--danger);font-size:12.5px;margin-top:5px;min-height:0}
+  .err:empty{display:none}
+
+  .code-in{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
+  .slug-in{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .slug-preview{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--muted);margin-top:6px}
+  .slug-preview b{color:var(--ink)}
+
+  .actions{padding:22px 26px 26px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  button{
+    font:inherit;font-size:15.5px;font-weight:600;color:#fff;background:var(--accent);
+    border:none;border-radius:3px;padding:12px 24px;cursor:pointer;
+  }
+  button:hover:not(:disabled){background:var(--accent-hover)}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .actions .side{font-size:13.5px;color:var(--muted)}
+
+  .banner{
+    border:1px solid var(--line);border-left-width:4px;padding:15px 18px;margin:0 0 22px;font-size:14.5px;
+  }
+  .banner.bad{border-left-color:var(--danger);background:var(--danger-soft);color:var(--ink)}
+  .banner.good{border-left-color:var(--ok);background:var(--ok-soft);color:var(--ink)}
+  .banner b{font-weight:700}
+
+  /* success panel */
+  #done{display:none;background:var(--card);border:1px solid var(--line);padding:30px 26px}
+  #done h2{margin:0 0 10px;font-size:23px;letter-spacing:-.02em}
+  #done p{color:var(--muted);margin:0 0 18px;max-width:50ch;font-size:15.5px}
+  .shopcode{
+    display:inline-block;font-family:ui-monospace,monospace;font-size:20px;font-weight:700;
+    background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);
+    padding:10px 18px;letter-spacing:.05em;margin-bottom:20px;
+  }
+  a.btn{
+    display:inline-block;text-decoration:none;font-size:15.5px;font-weight:600;color:#fff;
+    background:var(--accent);border-radius:3px;padding:12px 24px;
+  }
+  a.btn:hover{background:var(--accent-hover)}
+  a.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  footer{margin-top:26px;color:var(--faint);font-size:13px;line-height:1.6}
+  footer a{color:var(--accent)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker">Repair shop sign-up · Invitation only</p>
+    <h1>Set up your shop</h1>
+    <p class="lede">You need an invite code to continue. This creates your shop, its job numbering, and your first administrator login. It takes about a minute.</p>
+  </header>
+
+  <div id="banner" class="banner bad" hidden></div>
+
+  <form id="form" novalidate autocomplete="off">
+
+    <fieldset>
+      <legend>Your invitation</legend>
+      <p class="fs-note">The code you were sent. Each code works once.</p>
+      <div class="grid">
+        <div class="f">
+          <label for="invite">Invite code</label>
+          <input id="invite" name="invite" class="code-in" required autocomplete="off"
+                 spellcheck="false" placeholder="XXXX-XXXX-XXXX">
+          <span class="err" id="e-invite"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Your business</legend>
+      <p class="fs-note">Enter the email address where your shop receives messages.</p>
+      <div class="grid">
+        <div class="f">
+          <label for="email">Business email</label>
+          <input id="email" type="email" required autocomplete="email" placeholder="shop@example.com">
+          <span class="err" id="e-email"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Your shop code</legend>
+      <p class="fs-note">A short name for your shop. You and your staff type this every time you sign in, so keep it short and easy to say out loud. It cannot be changed later.</p>
+      <div class="grid">
+        <div class="f">
+          <label for="slug">Shop code</label>
+          <input id="slug" class="slug-in" required autocomplete="off" spellcheck="false"
+                 maxlength="24" placeholder="riverside">
+          <div class="slug-preview">Staff will sign in with shop code <b id="slugEcho">—</b></div>
+          <span class="err" id="e-slug"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Your administrator login</legend>
+      <p class="fs-note">The first login for your shop. It can add and remove your other staff, so keep the password to yourself.</p>
+      <div class="grid">
+        <div class="f">
+          <label for="username">Username</label>
+          <input id="username" required autocomplete="off" spellcheck="false" placeholder="Dana R">
+          <span class="err" id="e-username"></span>
+        </div>
+      </div>
+      <div class="grid two" style="margin-top:18px">
+        <div class="f">
+          <label for="password">Password <span class="hint">At least 10 characters.</span></label>
+          <input id="password" type="password" required autocomplete="new-password">
+          <span class="err" id="e-password"></span>
+        </div>
+        <div class="f">
+          <label for="password2">Repeat password <span class="hint"></span></label>
+          <input id="password2" type="password" required autocomplete="new-password">
+          <span class="err" id="e-password2"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit" id="submit">Create my shop</button>
+      <span class="side" id="status">Nothing is created until you press this.</span>
+    </div>
+  </form>
+
+  <section id="done">
+    <h2>Your shop is set up</h2>
+    <p>Sign in with the shop code below, plus the username and password you just chose. Write the shop code down somewhere — everyone at your shop needs it to sign in.</p>
+    <div class="shopcode" id="doneSlug">—</div>
+    <div><a class="btn" id="loginLink" href="./checklist.html">Go to sign in</a></div>
+  </section>
+
+  <footer>
+    <p>Trouble with your code? Reply to the message it came in and we'll issue a new one.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- configuration -----------------------------------------------------
+  var API = "https://lwpc-api.onrender.com";
+  var LOGIN_PAGE = "./checklist.html";
+
+  // The route's expected body key names were never read from source, so
+  // rather than guess one, each value is sent under every plausible key.
+  // A handler that destructures req.body takes the one it wants and ignores
+  // the rest. Once you have seen this work, open the network tab, see which
+  // key the route actually used, and cut each list down to that one.
+  //
+  // If the route validates strictly and rejects unknown keys, trim these to
+  // a single name each from src/routes/authRoutes.js.
+  var FIELD_ALIASES = {
+    invite:       ["inviteCode", "invite_code", "invite", "code"],
+    slug:         ["shopSlug", "slug", "shopCode", "shop_code"],
+    businessName: ["shopName", "businessName", "business_name"],
+    email:        ["email"],
+    username:     ["username"],
+    password:     ["password"]
+  };
+
+  // Field ids that must not be trimmed or lowercased on the way out.
+  var RAW_FIELDS = ["password"];
+
+  var SLUG_RE = /^[a-z0-9]([a-z0-9-]{1,22}[a-z0-9])?$/;
+  var MIN_PASSWORD = 10;
+
+  // Shop codes that would collide with a route or read as official.
+  var RESERVED = ["api", "admin", "www", "login", "register", "static", "assets", "support", "help", "lwpc"];
+
+  // ---- helpers -----------------------------------------------------------
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form"), submit = $("submit"), status = $("status"), banner = $("banner");
+
+  function setError(id, message) {
+    var slot = $("e-" + id), input = $(id);
+    if (slot) slot.textContent = message || "";
+    if (input) {
+      if (message) input.setAttribute("aria-invalid", "true");
+      else input.removeAttribute("aria-invalid");
+    }
+  }
+
+  function clearErrors() {
+    Object.keys(FIELD_ALIASES).forEach(function (id) { setError(id, ""); });
+    setError("password2", "");
+    banner.hidden = true;
+    banner.textContent = "";
+  }
+
+  // Surface whatever the server said, so a first failed attempt is
+  // diagnostic rather than a shrug. Falls back to null if it said nothing.
+  function serverMessage(data) {
+    if (!data || typeof data !== "object") return null;
+    var text = data.error || data.message || data.detail;
+    if (Array.isArray(data.errors) && data.errors.length) {
+      text = data.errors.map(function (e) {
+        return (typeof e === "string") ? e : (e.message || e.msg || JSON.stringify(e));
+      }).join(" · ");
+    }
+    return (typeof text === "string" && text.trim()) ? text.trim() : null;
+  }
+
+  function showBanner(message) {
+    banner.className = "banner bad";
+    banner.textContent = message;
+    banner.hidden = false;
+    banner.scrollIntoView({ block: "nearest" });
+  }
+
+  // ---- shop code echo ----------------------------------------------------
+  var slugInput = $("slug"), slugEcho = $("slugEcho");
+  slugInput.addEventListener("input", function () {
+    var cleaned = slugInput.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (cleaned !== slugInput.value) slugInput.value = cleaned;
+    slugEcho.textContent = cleaned || "—";
+  });
+
+  // ---- validation --------------------------------------------------------
+  function validate() {
+    clearErrors();
+    var ok = true;
+
+    function require(id, message) {
+      if (!$(id).value.trim()) { setError(id, message); ok = false; return false; }
+      return true;
+    }
+
+    require("invite", "Enter the invite code you were sent.");
+
+    if (require("email", "Enter a business email address.")) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())) {
+        setError("email", "That doesn't look like an email address."); ok = false;
+      }
+    }
+
+    var slug = $("slug").value.trim();
+    if (!slug) {
+      setError("slug", "Choose a shop code."); ok = false;
+    } else if (!SLUG_RE.test(slug)) {
+      setError("slug", "Use 2–24 characters: lowercase letters, numbers and hyphens, starting and ending with a letter or number."); ok = false;
+    } else if (RESERVED.indexOf(slug) !== -1) {
+      setError("slug", "That shop code is reserved. Pick another."); ok = false;
+    }
+
+    require("username", "Choose a username for your administrator login.");
+
+    var pw = $("password").value, pw2 = $("password2").value;
+    if (!pw) {
+      setError("password", "Choose a password."); ok = false;
+    } else if (pw.length < MIN_PASSWORD) {
+      setError("password", "Use at least " + MIN_PASSWORD + " characters."); ok = false;
+    }
+    if (pw && pw2 !== pw) {
+      setError("password2", "The two passwords don't match."); ok = false;
+    }
+
+    return ok;
+  }
+
+  // ---- submit ------------------------------------------------------------
+  var sending = false;
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    if (sending) return;
+
+    if (!validate()) {
+      var firstBad = form.querySelector('[aria-invalid="true"]');
+      if (firstBad) firstBad.focus();
+      return;
+    }
+
+    var body = {};
+    Object.keys(FIELD_ALIASES).forEach(function (id) {
+      var raw = $(id).value;
+      // Never trim a password — leading and trailing spaces are part of it.
+      var value = (RAW_FIELDS.indexOf(id) !== -1) ? raw : raw.trim();
+      FIELD_ALIASES[id].forEach(function (key) { body[key] = value; });
+    });
+
+    sending = true;
+    submit.disabled = true;
+    status.textContent = "Setting up your shop…";
+
+    fetch(API + "/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    })
+      .then(function (response) {
+        return response.json().catch(function () { return {}; })
+          .then(function (data) { return { status: response.status, ok: response.ok, data: data }; });
+      })
+      .then(function (result) {
+        if (result.ok) {
+          $("doneSlug").textContent = $("slug").value.trim();
+          $("loginLink").href = LOGIN_PAGE;
+          form.hidden = true;
+          $("done").style.display = "block";
+          $("done").scrollIntoView({ block: "start" });
+          return;
+        }
+
+        if (result.status === 401 || result.status === 403) {
+          setError("invite", "This code isn't valid, or it has already been used.");
+          showBanner("That invite code didn't work. Check it for typos — if it still fails, it has probably already been used and you'll need a new one.");
+        } else if (result.status === 409) {
+          setError("slug", "That shop code is already taken. Pick another.");
+          showBanner("Someone is already using that shop code, or that username is taken. Try a different one.");
+        } else if (result.status === 400 || result.status === 422) {
+          showBanner(serverMessage(result.data) ||
+            "Something in the form was rejected. Check every field and try again.");
+        } else {
+          showBanner(serverMessage(result.data) ||
+            "The server couldn't complete the sign-up. Nothing was created — you can safely try again in a moment.");
+        }
+      })
+      .catch(function () {
+        showBanner("Couldn't reach the server. Check your connection and try again — nothing was created.");
+      })
+      .then(function () {
+        sending = false;
+        submit.disabled = false;
+        status.textContent = "Nothing is created until you press this.";
+      });
+  });
+})();
+</script>
+</body>
+</html>
