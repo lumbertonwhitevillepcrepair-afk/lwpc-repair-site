@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Quick repair intake form for Lumberton-Whiteville Computer Repair">
+  <title>Repair Intake - LWPC</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #0e5c4c;
+      --primary-dark: #0a4339;
+      --primary-light: #e0ece7;
+      --neutral-bg: #f5f5f5;
+      --neutral-card: #ffffff;
+      --neutral-text: #1a1a1a;
+      --neutral-muted: #666666;
+      --neutral-border: #e0e0e0;
+      --danger: #d32f2f;
+      --success: #388e3c;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--neutral-bg);
+      color: var(--neutral-text);
+    }
+
+    body {
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-top: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 12px 0;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tagline {
+      font-size: 15px;
+      color: var(--neutral-muted);
+      margin: 0;
+    }
+
+    .info-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 16px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .info-box p {
+      margin: 0;
+      color: var(--primary-dark);
+    }
+
+    form {
+      background: var(--neutral-card);
+      padding: 28px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+
+    .form-group:last-of-type {
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--neutral-text);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .required {
+      color: var(--danger);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid var(--neutral-border);
+      border-radius: 6px;
+      font-family: inherit;
+      background: #fafafa;
+      color: var(--neutral-text);
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      background: var(--neutral-card);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-size: 15px;
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230e5c4c' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    button {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: var(--primary);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      color: var(--success);
+      border: 1px solid #c8e6c9;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: var(--danger);
+      border: 1px solid #ffcdd2;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--neutral-muted);
+      font-size: 13px;
+      padding-bottom: 20px;
+    }
+
+    footer p {
+      margin: 8px 0;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      form {
+        padding: 24px 16px;
+      }
+
+      header {
+        margin-bottom: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">LWPC</div>
+      <h1>Tell Us About Your Device</h1>
+      <p class="tagline">We'll get back to you within a couple minutes</p>
+    </header>
+
+    <div class="info-box">
+      <strong>⚡ Not a price quote</strong>
+      <p>We'll call you with an exact estimate before any work happens. Simple repairs usually run about $75, bigger jobs around $125, but the real number depends on what we find.</p>
+    </div>
+
+    <form name="device-intake" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="device-intake">
+      <p style="display:none"><label>Leave this blank: <input name="bot-field"></label></p>
+
+      <div class="form-group">
+        <label for="name">Your Name <span class="required">*</span></label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="e.g. John Smith"
+          required
+          autocomplete="name"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number <span class="required">*</span></label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          placeholder="(555) 123-4567"
+          required
+          autocomplete="tel"
+        >
+        <small style="display: block; margin-top: 6px; color: var(--neutral-muted); font-size: 13px;">We'll call you back on this number</small>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email <span style="color: #999; font-weight: 400; text-transform: none;">(optional)</span></label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="device-type">Device Type <span class="required">*</span></label>
+        <select id="device-type" name="device-type" required>
+          <option value="">— Please select —</option>
+          <option value="desktop">Desktop Computer</option>
+          <option value="laptop">Laptop</option>
+          <option value="mac">Mac</option>
+          <option value="macbook">MacBook</option>
+          <option value="iphone">iPhone</option>
+          <option value="ipad">iPad</option>
+          <option value="samsung">Samsung Phone</option>
+          <option value="android">Android Phone</option>
+          <option value="tablet">Tablet</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="brand-model">Brand / Model <span style="color: #999; font-weight: 400; text-transform: none;">(if known)</span></label>
+        <input
+          type="text"
+          id="brand-model"
+          name="brand-model"
+          placeholder="e.g. Dell XPS 13, iPhone 12 Pro"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="problem">What's It Doing? <span class="required">*</span></label>
+        <textarea
+          id="problem"
+          name="problem"
+          placeholder="Describe the issue in your own words"
+          required
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="duration">How Long Has It Been Broken?</label>
+          <input
+            type="text"
+            id="duration"
+            name="duration"
+            placeholder="e.g. since last week, or just today"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="previous-work">Anyone Else Worked On It?</label>
+          <input
+            type="text"
+            id="previous-work"
+            name="previous-work"
+            placeholder="e.g. no, or yes — a friend looked at it"
+          >
+        </div>
+      </div>
+
+      <button type="submit" id="submit-btn">Send to the Shop</button>
+      <div class="status" id="status"></div>
+    </form>
+
+    <footer>
+      <p><strong>Lumberton-Whiteville Computer Repair</strong></p>
+      <p>Fast repairs. Fair prices. Local service.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Handle form submission
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusDiv = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      statusDiv.className = 'status';
+      statusDiv.textContent = '';
+
+      try {
+        // Netlify captures submissions posted as form-encoded data back to
+        // this page's own path. The hidden form-name field above is what
+        // tells Netlify which form this is — without it, the post is dropped.
+        const formData = new FormData(form);
+
+        const response = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData).toString()
+        });
+
+        if (!response.ok) throw new Error('Submission rejected: ' + response.status);
+
+        statusDiv.className = 'status success';
+        statusDiv.textContent = '✓ Got it. We\'ll call you back shortly at the number you gave us.';
+
+        form.reset();
+        statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (error) {
+        statusDiv.className = 'status error';
+        // TODO (Billy): drop your real shop number in here so a failed
+        // submit lands on a phone call instead of a dead end.
+        statusDiv.textContent = 'That didn\'t go through. Please give the shop a call and we\'ll take the details over the phone.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send to the Shop';
+      }
+    });
+  </script>
+</body>
+</html>
