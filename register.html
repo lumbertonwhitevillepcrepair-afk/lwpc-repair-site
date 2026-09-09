@@ -4,28 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Set up your shop</title>
+<meta name="description" content="Create your repair shop's account: job numbering, staff logins, and your administrator sign-in. Invitation only.">
+<meta name="theme-color" content="#0e5c4c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e5c4c'/%3E%3Ctext x='16' y='22' font-family='system-ui,sans-serif' font-size='17' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Set up your shop">
+<meta property="og:description" content="Create your repair shop's account: job numbering, staff logins, and your administrator sign-in. Invitation only.">
+<meta name="twitter:card" content="summary">
 
 <!-- ===================================================================
-     register.html  —  LWPC job system, tenant sign-up
-     Draft, 8 Sep 2026.
+     register.html — tenant sign-up for the LWPC job system.
 
-     DEPLOY: must be served from the SAME Netlify origin as
-     checklist.html. The API only accepts requests from that one origin,
-     so this page will fail CORS from anywhere else (including a file://
-     copy opened locally).
+     ORIGIN
+     Must be served from an origin the API allowlists. Requests from any
+     other origin fail at the CORS preflight before reaching the route;
+     a file:// copy will not work either.
 
-     BODY KEY NAMES
-     The route source could not be reached when this was written, so the
-     request body keys were not guessed at — each value is sent under
-     every plausible key at once (see FIELD_ALIASES in the script). A
-     handler that destructures req.body takes what it wants and ignores
-     the rest, so this should work as-is.
+     REQUEST BODY  ** UNRESOLVED — blocks production **
+     FIELD_ALIASES below sends each value under several candidate key
+     names because the route contract has not been pinned down. Read what
+     POST /register destructures in src/routes/authRoutes.js, then reduce
+     each list to the one key it actually reads.
 
-     Tidy-up, once you have seen it work: check the network tab for which
-     key the route actually read, then cut each alias list down to that
-     one name. If the route instead rejects unknown keys, trim the lists
-     first, using what POST /register destructures in
-     src/routes/authRoutes.js.
+     TRUST BOUNDARY
+     Every rule enforced here — slug shape, reserved names, password
+     length — is a convenience for the person filling the form, not a
+     control. The server must enforce all of it independently.
      =================================================================== -->
 
 <style>
@@ -88,6 +92,10 @@
 
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
+  /* Any author rule that sets display (a.btn is inline-block) outranks the
+     user-agent [hidden] rule, so el.hidden = true silently does nothing.
+     This makes the attribute mean what it says. */
+  [hidden]{display:none!important}
   body{
     background:var(--paper);
     color:var(--ink);
@@ -169,7 +177,7 @@
   button.pw-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
   .req{
-    display:block;font-size:12.5px;color:var(--faint);
+    display:block;font-size:12.5px;color:var(--muted);
     margin-top:6px;min-height:1.45em;
   }
   .req.ok{color:var(--ok);font-weight:600}
@@ -197,7 +205,7 @@
   a.btn:hover{background:var(--accent-hover)}
   a.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-  footer{margin-top:26px;color:var(--faint);font-size:13px;line-height:1.6}
+  footer{margin-top:26px;color:var(--muted);font-size:13.5px;line-height:1.6}
   footer a{color:var(--accent)}
 
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -212,7 +220,7 @@
     <p class="lede">You need an invite code to continue. This creates your shop, its job numbering, and your first administrator login. It takes about a minute.</p>
   </header>
 
-  <div id="banner" class="banner bad" hidden></div>
+  <div id="banner" class="banner bad" role="alert" hidden></div>
 
   <form id="form" novalidate autocomplete="off">
 
@@ -222,8 +230,8 @@
       <div class="grid">
         <div class="f">
           <label for="invite">Invite code</label>
-          <input id="invite" name="invite" class="code-in" required autocomplete="off"
-                 spellcheck="false" placeholder="XXXX-XXXX-XXXX">
+          <input id="invite" name="invite" class="code-in" required autocomplete="off" autofocus
+                 spellcheck="false" placeholder="XXXX-XXXX-XXXX" aria-describedby="e-invite">
           <span class="err" id="e-invite"></span>
         </div>
       </div>
@@ -236,12 +244,12 @@
         <div class="f">
           <label for="businessName">Business name</label>
           <input id="businessName" required autocomplete="organization"
-                 placeholder="Riverside Computer Repair">
+                 placeholder="Riverside Computer Repair" aria-describedby="e-businessName">
           <span class="err" id="e-businessName"></span>
         </div>
         <div class="f">
           <label for="email">Business email</label>
-          <input id="email" type="email" required autocomplete="email" placeholder="shop@example.com">
+          <input id="email" type="email" required autocomplete="email" placeholder="shop@example.com" aria-describedby="e-email">
           <span class="err" id="e-email"></span>
         </div>
       </div>
@@ -254,7 +262,7 @@
         <div class="f">
           <label for="slug">Shop code</label>
           <input id="slug" class="slug-in" required autocomplete="off" spellcheck="false"
-                 maxlength="24" placeholder="riverside">
+                 maxlength="24" placeholder="riverside" aria-describedby="e-slug">
           <div class="slug-preview">Staff will sign in with shop code <b id="slugEcho">—</b></div>
           <span class="err" id="e-slug"></span>
         </div>
@@ -267,7 +275,7 @@
       <div class="grid">
         <div class="f">
           <label for="username">Username</label>
-          <input id="username" required autocomplete="off" spellcheck="false" placeholder="Dana R">
+          <input id="username" required autocomplete="off" spellcheck="false" placeholder="Dana R" aria-describedby="e-username">
           <span class="err" id="e-username"></span>
         </div>
       </div>
@@ -305,7 +313,10 @@
     <h2>Your shop is set up</h2>
     <p>Sign in with the shop code below, plus the username and password you just chose. Write the shop code down somewhere — everyone at your shop needs it to sign in.</p>
     <div class="shopcode" id="doneSlug">—</div>
-    <div><a class="btn" id="loginLink" href="./checklist.html">Go to sign in</a></div>
+    <div><a class="btn" id="loginLink" href="#">Go to sign in</a></div>
+    <p id="loginNote" hidden style="margin:0;color:var(--muted);font-size:15px">
+      Keep the shop code above — everyone at your shop needs it to sign in.
+    </p>
   </section>
 
   <footer>
@@ -320,7 +331,20 @@
 
   // ---- configuration -----------------------------------------------------
   var API = "https://lwpc-api.onrender.com";
-  var LOGIN_PAGE = "./checklist.html";
+
+  // Sign-in URL. Deliberately empty: an empty value hides the button and
+  // shows a fallback line, which beats sending a shop owner to a 404 at the
+  // exact moment they have finished signing up. It previously pointed at
+  // ./checklist.html, which is not deployed next to this page and returned
+  // a 404. Set this to the real sign-in URL before launch.
+  var LOGIN_PAGE = "";
+
+  // The API idles out on its current plan, so the first request after a
+  // quiet spell can take tens of seconds. Without a ceiling the button stays
+  // disabled indefinitely and the page looks broken; with one, the person
+  // gets an honest message and can retry.
+  var REQUEST_TIMEOUT_MS = 25000;
+  var SLOW_NOTICE_MS = 6000;
 
   // The route's expected body key names were never read from source, so
   // rather than guess one, each value is sent under every plausible key.
@@ -545,22 +569,52 @@
     submit.disabled = true;
     status.textContent = "Setting up your shop…";
 
+    var controller = ("AbortController" in window) ? new AbortController() : null;
+    var timedOut = false;
+    var slowTimer = setTimeout(function () {
+      status.textContent = "Still working — the server may be waking up.";
+    }, SLOW_NOTICE_MS);
+    var abortTimer = controller && setTimeout(function () {
+      timedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
+
+    function clearTimers() {
+      clearTimeout(slowTimer);
+      if (abortTimer) clearTimeout(abortTimer);
+    }
+
     fetch(API + "/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: controller ? controller.signal : undefined
     })
       .then(function (response) {
+        clearTimers();
         return response.json().catch(function () { return {}; })
           .then(function (data) { return { status: response.status, ok: response.ok, data: data }; });
       })
       .then(function (result) {
         if (result.ok) {
           $("doneSlug").textContent = $("slug").value.trim();
-          $("loginLink").href = LOGIN_PAGE;
+
+          if (LOGIN_PAGE) {
+            $("loginLink").href = LOGIN_PAGE;
+          } else {
+            $("loginLink").hidden = true;
+            $("loginNote").hidden = false;
+          }
+
           form.hidden = true;
           $("done").style.display = "block";
           $("done").scrollIntoView({ block: "start" });
+
+          // Move focus into the panel. Otherwise focus stays on a submit
+          // button that is now hidden, and a screen reader announces nothing.
+          var heading = $("done").querySelector("h2");
+          heading.setAttribute("tabindex", "-1");
+          heading.focus();
           return;
         }
 
@@ -579,7 +633,11 @@
         }
       })
       .catch(function () {
-        showBanner("Couldn't reach the server. Check your connection and try again — nothing was created.");
+        clearTimers();
+        showBanner(timedOut
+          ? "The server didn't answer within " + Math.round(REQUEST_TIMEOUT_MS / 1000) +
+            " seconds. It may be waking up after sitting idle — wait a moment and press the button again. Nothing was created."
+          : "Couldn't reach the server. Check your connection and try again — nothing was created.");
       })
       .then(function () {
         sending = false;
