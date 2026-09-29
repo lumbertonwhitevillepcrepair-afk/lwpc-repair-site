@@ -25,17 +25,63 @@ exports.handler = async (event) => {
     const d = payload.data || {};
     const clean = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
 
-    const name = clean(d.name) || 'No name given';
-    const phone = clean(d.phone);
-    const device = [clean(d.deviceType), clean(d.brandModel)].filter(Boolean).join(' ');
+    // Two pages have posted to this same Netlify form under two different
+    // field spellings: index.html used kebab-case (device-type, problem),
+    // device-intake.html used camelCase (deviceType, issue). This function
+    // only knew the camelCase names, so every submission from the home page
+    // arrived here with the device and the customer description of the
+    // problem sitting in keys nobody read -- and because a missing key is
+    // just undefined, the notification came through looking fine, only
+    // shorter. Nothing logged an error. Accept both spellings.
+    const pick = (...keys) => {
+      for (const k of keys) {
+        const v = clean(d[k]);
+        if (v) return v;
+      }
+      return '';
+    };
+
+    const name = pick('name') || 'No name given';
+    const phone = pick('phone');
+    const email = pick('email');
+    const deviceType = pick('deviceType', 'device-type');
+    const brandModel = pick('brandModel', 'brand-model');
+    const issue = pick('issue', 'problem');
+    const duration = pick('duration');
+    const previousWork = pick('previousWork', 'previous-work');
+
+    const device = [deviceType, brandModel].filter(Boolean).join(' ');
+
+    // Anything the form sends that this function does not recognise gets
+    // appended rather than dropped. That is the actual lesson from the bug
+    // above: a notification that quietly omits what it does not understand
+    // is indistinguishable from a customer who typed less. An ugly extra
+    // line is a much cheaper failure than a missing one.
+    const KNOWN = new Set([
+      'name', 'phone', 'email',
+      'deviceType', 'device-type',
+      'brandModel', 'brand-model',
+      'issue', 'problem',
+      'duration',
+      'previousWork', 'previous-work',
+      'form-name', 'bot-field',
+    ]);
+    const extras = Object.keys(d)
+      .filter((k) => !KNOWN.has(k))
+      .map((k) => {
+        const v = clean(d[k]);
+        return v ? `${k}: ${v}` : '';
+      })
+      .filter(Boolean);
 
     const lines = [
       device && `Device: ${device}`,
-      clean(d.issue) && `Issue: ${clean(d.issue)}`,
-      clean(d.duration) && `Going on: ${clean(d.duration)}`,
-      clean(d.previousWork) && `Prior work: ${clean(d.previousWork)}`,
+      issue && `Issue: ${issue}`,
+      duration && `Going on: ${duration}`,
+      previousWork && `Prior work: ${previousWork}`,
       phone && `Phone: ${phone}`,
-      clean(d.email) && `Email: ${clean(d.email)}`,
+      email && `Email: ${email}`,
+      ...extras,
     ].filter(Boolean);
 
     const body = new URLSearchParams({
